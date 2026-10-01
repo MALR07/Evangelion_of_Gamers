@@ -1,0 +1,39 @@
+services:
+  database:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: gameshelf
+      POSTGRES_USER: gameshelf
+      POSTGRES_PASSWORD: gameshelf_local
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gameshelf -d gameshelf"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+    ports:
+      - "8888:8888"
+    environment:
+      DATABASE_URL: postgres://gameshelf:gameshelf_local@database:5432/gameshelf
+      JWT_SECRET: local_only_change_before_deploying
+      RAWG_API_KEY: ${RAWG_API_KEY:-}
+      NODE_ENV: development
+      NODE_OPTIONS: --dns-result-order=ipv4first
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
