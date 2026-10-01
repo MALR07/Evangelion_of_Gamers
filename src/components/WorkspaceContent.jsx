@@ -1,7 +1,7 @@
 import { FILTERS } from '../config/constants.js';
 import { formatListDate } from '../utils/format.js';
 import CommunityLanding from './CommunityLanding.jsx';
-import { AchievementsPanel, GameCover } from './shared.jsx';
+import { AchievementsPanel, GameCover, GameSignals } from './shared.jsx';
 
 export default function WorkspaceContent({ data }) {
   const {
