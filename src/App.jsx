@@ -26,6 +26,8 @@ function App() {
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [activeFilter, setActiveFilter] = useState('Todos');
+  const [librarySearch, setLibrarySearch] = useState('');
+  const [librarySort, setLibrarySort] = useState('default');
   const [message, setMessage] = useState('');
   const [achievements, setAchievements] = useState({});
   const [openAchievements, setOpenAchievements] = useState('');
@@ -177,9 +179,22 @@ function App() {
     setListDraft({ title: selectedList.title, year: selectedList.year ?? '', sections: selectedList.sections, isPublic: selectedList.isPublic });
   }, [selectedListId, selectedList]);
 
-  const visibleGames = useMemo(() => activeFilter === 'Todos'
-    ? games
-    : games.filter((game) => game.status === activeFilter), [games, activeFilter]);
+  const visibleGames = useMemo(() => {
+    const search = librarySearch.trim().toLocaleLowerCase('es');
+    const filtered = games.filter((game) => {
+      const matchesStatus = activeFilter === 'Todos' || game.status === activeFilter;
+      const matchesSearch = !search || game.name.toLocaleLowerCase('es').includes(search);
+      return matchesStatus && matchesSearch;
+    });
+    if (librarySort === 'title') return filtered.sort((a, b) => a.name.localeCompare(b.name, 'es'));
+    if (librarySort === 'release-year') return filtered.sort((a, b) => {
+      const yearA = Number.parseInt(a.released?.slice(0, 4), 10) || 0;
+      const yearB = Number.parseInt(b.released?.slice(0, 4), 10) || 0;
+      return yearB - yearA || a.name.localeCompare(b.name, 'es');
+    });
+    if (librarySort === 'rating') return filtered.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0) || a.name.localeCompare(b.name, 'es'));
+    return filtered;
+  }, [games, activeFilter, librarySearch, librarySort]);
 
   const counts = useMemo(() => ({
     all: games.length,
@@ -549,7 +564,7 @@ function App() {
     setSelectedListId, setListEditing, listEditing, selectedList, toggleListVisibility, listSaving, deleteList,
     addLibraryGame, listDraft, setListDraft, saveList, updateListDraft, removeSection, updateSection, removeListItem,
     moveListItem, addListItem, addSection, counts, query, setQuery, searchGames, searching, results,
-    addGame, visibleGames, activeFilter, setActiveFilter, gamesLoading, noteDrafts, setNoteDrafts,
+    addGame, visibleGames, activeFilter, setActiveFilter, librarySearch, setLibrarySearch, librarySort, setLibrarySort, gamesLoading, noteDrafts, setNoteDrafts,
     updateGame, addGameToList, openAchievements, toggleAchievements, removeGame, achievements
   };
   if (!session?.token) {

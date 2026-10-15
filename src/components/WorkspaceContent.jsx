@@ -15,7 +15,8 @@ export default function WorkspaceContent({ data }) {
     addLibraryGame, listDraft, setListDraft, saveList, updateListDraft, removeSection,
     updateSection, removeListItem, moveListItem, addListItem, addSection, counts, query,
     setQuery, searchGames, searching, results, addGame, visibleGames, activeFilter,
-    setActiveFilter, gamesLoading, noteDrafts, setNoteDrafts, updateGame, addGameToList,
+    setActiveFilter, librarySearch, setLibrarySearch, librarySort, setLibrarySort,
+    gamesLoading, noteDrafts, setNoteDrafts, updateGame, addGameToList,
     openAchievements, toggleAchievements, removeGame, achievements
   } = data;
 
@@ -97,9 +98,13 @@ export default function WorkspaceContent({ data }) {
 
         <section className="library-section">
           <div className="library-heading"><div className="section-kicker"><span>02</span><h2>Tu archivo</h2></div><span className="library-total">{visibleGames.length} {visibleGames.length === 1 ? 'JUEGO' : 'JUEGOS'}</span></div>
+          <div className="library-tools">
+            <label className="library-search"><span className="visually-hidden">Buscar en tu biblioteca</span><input type="search" value={librarySearch} onChange={(event) => setLibrarySearch(event.target.value)} placeholder="⌕  Buscar un juego de tu biblioteca…" /></label>
+            <label className="library-sort"><span>ORDENAR</span><select value={librarySort} onChange={(event) => setLibrarySort(event.target.value)} aria-label="Ordenar juegos de la biblioteca"><option value="default">Orden original</option><option value="title">Título: A-Z</option><option value="release-year">Año de lanzamiento</option><option value="rating">Nota: mayor a menor</option></select></label>
+          </div>
           <div className="filter-row" role="tablist" aria-label="Filtrar juegos">{FILTERS.map((filter) => <button key={filter} role="tab" aria-selected={activeFilter === filter} className={activeFilter === filter ? 'filter-chip filter-active' : 'filter-chip'} onClick={() => setActiveFilter(filter)}>{filter}</button>)}</div>
           {message && <p className="notice app-notice" role="status">{message}<button aria-label="Cerrar aviso" onClick={() => setMessage('')}>×</button></p>}
-          {gamesLoading ? <div className="empty-state">Cargando tu colección…</div> : visibleGames.length === 0 ? <div className="empty-state"><span className="empty-glyph">✳</span><h3>{games.length ? 'No hay juegos en esta sección.' : 'Tu próxima aventura empieza aquí.'}</h3><p>Busca un videojuego arriba y añádelo a tu biblioteca.</p></div> : (
+          {gamesLoading ? <div className="empty-state">Cargando tu colección…</div> : visibleGames.length === 0 ? <div className="empty-state"><span className="empty-glyph">✳</span><h3>{games.length ? 'No se encontraron juegos con esos filtros.' : 'Tu próxima aventura empieza aquí.'}</h3><p>{games.length ? 'Prueba otra búsqueda o cambia el estado seleccionado.' : 'Busca un videojuego arriba y añádelo a tu biblioteca.'}</p></div> : (
             <div className="game-list">{visibleGames.map((game, index) => (
               <article className="game-card" key={game.rawgId}>
                 <div className="game-number">{String(index + 1).padStart(2, '0')}</div>

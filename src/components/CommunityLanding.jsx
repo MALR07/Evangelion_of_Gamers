@@ -25,6 +25,7 @@ export default function CommunityLanding({
   const [newsIndex, setNewsIndex] = useState(0);
   const [newsTransitioning, setNewsTransitioning] = useState(false);
   const [authorQuery, setAuthorQuery] = useState('');
+  const [listYear, setListYear] = useState('');
   const [expandedCategories, setExpandedCategories] = useState({});
   const [expandedLists, setExpandedLists] = useState({});
   const newsTransitionTimer = useRef(null);
@@ -33,9 +34,12 @@ export default function CommunityLanding({
   const activeNewsIdRef = useRef('');
   const activeNews = latestNews[newsIndex] ?? null;
   const normalizedAuthorQuery = authorQuery.trim().toLocaleLowerCase('es');
-  const visibleLists = normalizedAuthorQuery
-    ? lists.filter((list) => (list.username || '').toLocaleLowerCase('es').includes(normalizedAuthorQuery))
-    : lists;
+  const listYears = [...new Set(lists.map((list) => String(list.year ?? '')).filter((year) => /^\d{4}$/.test(year)))].sort((a, b) => Number(b) - Number(a));
+  const visibleLists = lists.filter((list) => {
+    const matchesAuthor = !normalizedAuthorQuery || (list.username || '').toLocaleLowerCase('es').includes(normalizedAuthorQuery);
+    const matchesYear = !listYear || String(list.year ?? '') === listYear;
+    return matchesAuthor && matchesYear;
+  });
   const awardNews = latestNews.filter((entry) => /the game awards|game awards|nominad|nominat/i.test(`${entry.title} ${entry.description}`)).slice(0, 3);
 
   useEffect(() => {
@@ -120,8 +124,12 @@ export default function CommunityLanding({
 
       <section className="community-feed"><header className="community-feed-heading"><div><p className="eyebrow">DESCUBRE</p><h2>Listas de la comunidad</h2></div><span>{lists.length} {lists.length === 1 ? 'LISTA' : 'LISTAS'}</span></header>
         {actionMessage && <p className="notice app-notice" role="status">{actionMessage}<button aria-label="Cerrar aviso" onClick={onClearMessage}>×</button></p>}
-        {!loading && !error && lists.length > 0 && <label className="community-search"><span>BUSCAR LISTAS POR USUARIO</span><input type="search" value={authorQuery} onChange={(event) => setAuthorQuery(event.target.value)} placeholder="Escribe un nombre de usuario…" /></label>}
-        {loading ? <div className="community-empty">Cargando listas…</div> : error ? <div className="community-empty" role="alert">{error}</div> : !lists.length ? <div className="community-empty"><span className="empty-glyph">☷</span><h3>Aún no hay listas compartidas.</h3><p>{authenticated ? 'Vuelve a tu espacio y crea la primera lista.' : 'Crea una cuenta para empezar la primera.'}</p>{authenticated ? <button className="button button-dark" onClick={onBack}>Mi biblioteca <span>↗</span></button> : <button className="button button-dark" onClick={onRegister}>Crear cuenta <span>↗</span></button>}</div> : !visibleLists.length ? <div className="community-empty" role="status"><span className="empty-glyph">⌕</span><h3>No hay listas públicas de ese usuario.</h3><p>Prueba con otro nombre de usuario.</p></div> : <div className="community-list-grid">{visibleLists.map((list) => {
+        {!loading && !error && lists.length > 0 && <div className="community-search">
+          <label><span>BUSCAR LISTAS POR USUARIO</span><input type="search" value={authorQuery} onChange={(event) => setAuthorQuery(event.target.value)} placeholder="Escribe un nombre de usuario…" /></label>
+          <label><span>FILTRAR POR AÑO</span><select value={listYear} onChange={(event) => setListYear(event.target.value)} aria-label="Filtrar listas por año"><option value="">Todos los años</option>{listYears.map((year) => <option key={year} value={year}>{year}</option>)}</select></label>
+          <span className="community-search-count">{visibleLists.length} de {lists.length} {lists.length === 1 ? 'lista' : 'listas'}</span>
+        </div>}
+        {loading ? <div className="community-empty">Cargando listas…</div> : error ? <div className="community-empty" role="alert">{error}</div> : !lists.length ? <div className="community-empty"><span className="empty-glyph">☷</span><h3>Aún no hay listas compartidas.</h3><p>{authenticated ? 'Vuelve a tu espacio y crea la primera lista.' : 'Crea una cuenta para empezar la primera.'}</p>{authenticated ? <button className="button button-dark" onClick={onBack}>Mi biblioteca <span>↗</span></button> : <button className="button button-dark" onClick={onRegister}>Crear cuenta <span>↗</span></button>}</div> : !visibleLists.length ? <div className="community-empty" role="status"><span className="empty-glyph">⌕</span><h3>No se encontraron listas</h3><p>Prueba con otro usuario o selecciona otro año.</p></div> : <div className="community-list-grid">{visibleLists.map((list) => {
           const covers = new Map((list.covers ?? []).map((cover) => [cover.rawgId, cover.backgroundImage]));
           const isListExpanded = expandedLists[list.id] ?? false;
           const listContentId = `community-list-content-${list.id}`;

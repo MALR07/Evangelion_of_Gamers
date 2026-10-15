@@ -184,7 +184,10 @@ async function randomGameSpotlight() {
       'NieR: Automata',
       'Helldivers 2',
       'Bloodborne',
-      'Cyberpunk 2077'
+      'Cyberpunk 2077',
+      'Grand Theft Auto VI',
+      'Red Dead Redemption 2',
+      'Dark Souls'
     ];
     const featuredResults = await Promise.allSettled(featuredSearches.map((search) => rawg('games', { search, page_size: '3' })));
     const featuredGames = featuredResults.flatMap((result) => result.status === 'fulfilled'
